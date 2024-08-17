@@ -15,8 +15,8 @@ namespace Avenyrh
 
     public class Controls_WASD : Controls
     {
-        public override bool Left() => Input.GetKeyDown(KeyCode.A);
-        public override bool Right() => Input.GetKeyDown(KeyCode.D);
+        public override bool Left() => Input.GetKey(KeyCode.A);
+        public override bool Right() => Input.GetKey(KeyCode.D);
         public override bool Down() => Input.GetKey(KeyCode.S);
         public override bool Up() => Input.GetKeyDown(KeyCode.W);
         public override bool RotateClockwise() => Input.GetKeyDown(KeyCode.E);
@@ -26,8 +26,8 @@ namespace Avenyrh
 
     public class Controls_IJKL : Controls
     {
-        public override bool Left() => Input.GetKeyDown(KeyCode.J);
-        public override bool Right() => Input.GetKeyDown(KeyCode.L);
+        public override bool Left() => Input.GetKey(KeyCode.J);
+        public override bool Right() => Input.GetKey(KeyCode.L);
         public override bool Down() => Input.GetKey(KeyCode.K);
         public override bool Up() => Input.GetKeyDown(KeyCode.I);
         public override bool RotateClockwise() => Input.GetKeyDown(KeyCode.U);

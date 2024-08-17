@@ -1,3 +1,4 @@
+using MoreMountains.Feedbacks;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -10,6 +11,7 @@ namespace Avenyrh
         [Header("References")]
         [SerializeField] private Tilemap _boardTilemap = null;
         [SerializeField] private Piece _piece = null;
+        [SerializeField] private Transform _objParent = null;
         [SerializeField] private TetrominoData[] _tetrominoes = null;
 
         [Header("Validation")]
@@ -23,6 +25,13 @@ namespace Avenyrh
         [Header("Board")]
         [SerializeField] private Vector2Int _boardSize = new Vector2Int(10, 20);
         [SerializeField] private Vector3Int _spawnPosition = new Vector3Int(-1, 8, 0);
+
+        [Header("Feedbacks")]
+        [SerializeField] private MMF_Player _validatedFeedback = null;
+        [SerializeField] private MMF_Player _destroyLineFeedback = null;
+        [SerializeField] private MMF_Player _nextFeedback = null;
+        [SerializeField] private MMF_Player _storeFeedback = null;
+        [SerializeField] private MMF_Player _winFeedback = null;
 
         private Queue<ETetromino> _tetroQueue = null;
         private Objective _objective = null;
@@ -171,6 +180,7 @@ namespace Avenyrh
                 _storeTetro = current;
                 TetrominoData d = _tetrominoes[_storeTetro.GetHashCode()];
                 _store.sprite = d.preview;
+                _storeFeedback.PlayFeedbacks();
                 _hasStoredThisPiece = true;
 
                 return true;
@@ -186,6 +196,7 @@ namespace Avenyrh
             RectInt bounds = Bounds;
             int row = _currentObjectiveRow;
             bool clear = false;
+            bool lineWasCleared = false;
 
             // Clear from bottom to top
             while (row < bounds.yMax)
@@ -196,12 +207,16 @@ namespace Avenyrh
                 if (clear && !IsLineEmpty(row))
                 {
                     LineClear(row);
+                    lineWasCleared = true;
                 }
                 else
                 {
                     row++;
                 }
             }
+
+            if (lineWasCleared)
+                _destroyLineFeedback.PlayFeedbacks();
         }
 
         public bool IsLineFull(int row)
@@ -267,6 +282,7 @@ namespace Avenyrh
         {
             RectInt bounds = Bounds;
 
+            _validatedFeedback.PlayFeedbacks();
             for (int col = bounds.xMin; col < bounds.xMax; col++)
             {
                 Vector3Int position = new Vector3Int(col, _currentObjectiveRow, 0);
@@ -280,8 +296,9 @@ namespace Avenyrh
         public void SetObjective(Objective obj)
         {
             _currentObjectiveRow = Bounds.yMin;
-            _objective = Instantiate(obj, Vector3.zero, Quaternion.identity, transform);
+            _objective = Instantiate(obj, Vector3.zero, Quaternion.identity, _objParent);
             _objective.transform.localPosition = Vector3.zero;
+            _piece.CanMove = true;
         }
 
         public void LockPiece()
@@ -290,6 +307,7 @@ namespace Avenyrh
             CheckObjective();
             ClearLines();
             SpawnPiece();
+            _nextFeedback.PlayFeedbacks();
         }
 
         public void CheckObjective()
@@ -303,6 +321,8 @@ namespace Avenyrh
                 {
                     //Validate objective
                     Debug.Log("Validate objective");
+                    _piece.CanMove = false;
+                    _winFeedback.PlayFeedbacks();
                     break;
                 }
             }

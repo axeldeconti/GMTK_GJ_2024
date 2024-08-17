@@ -1,3 +1,4 @@
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 namespace Avenyrh
@@ -7,6 +8,12 @@ namespace Avenyrh
         [SerializeField] private float _stepDelay = 1f;
         [SerializeField] private float _moveDelay = 0.1f;
         [SerializeField] private float _lockDelay = 0.5f;
+
+        [Header("Debug")]
+        [SerializeField] private bool _canMove = false;
+        
+        [Header("Feedbacks")]
+        [SerializeField] private MMF_Player _hardDropFeedback = null;
 
         private Board _board = null;
         private Controls _controls = null;
@@ -40,6 +47,9 @@ namespace Avenyrh
 
         private void Update()
         {
+            if (!_canMove)
+                return;
+
             _board.ClearMap(this);
 
             // We use a timer to allow the player to make adjustments to the piece
@@ -91,11 +101,9 @@ namespace Avenyrh
             // Soft drop movement
             if (_controls.Down())
             {
+                // Update the step time to prevent double movement
                 if (Move(Vector2Int.down))
-                {
-                    // Update the step time to prevent double movement
                     _stepTime = Time.time + _stepDelay;
-                }
             }
 
             // Left/right movement
@@ -131,6 +139,7 @@ namespace Avenyrh
             }
 
             _board.LockPiece();
+            _hardDropFeedback.PlayFeedbacks();
         }
 
         private bool Move(Vector2Int translation)
@@ -238,5 +247,10 @@ namespace Avenyrh
         public TetrominoData TetroData => _data;
         public Vector3Int[] Cells => _cells;
         public Vector3Int Position => _position;
+        public bool CanMove
+        {
+            get => _canMove; 
+            set => _canMove = value;
+        }
     }
 }
