@@ -1,5 +1,6 @@
 using MoreMountains.Feedbacks;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -8,6 +9,9 @@ namespace Avenyrh
     [DefaultExecutionOrder(-1)]
     public class Board : MonoBehaviour
     {
+        [Header("Managers")]
+        [SerializeField] private AudioManager _audioManager = null;
+
         [Header("References")]
         [SerializeField] private Tilemap _boardTilemap = null;
         [SerializeField] private Piece _piece = null;
@@ -26,11 +30,18 @@ namespace Avenyrh
         [SerializeField] private Vector2Int _boardSize = new Vector2Int(10, 20);
         [SerializeField] private Vector3Int _spawnPosition = new Vector3Int(-1, 8, 0);
 
+        [Header("Score")]
+        [SerializeField] private TextMeshProUGUI _scoreText = null;
+        [SerializeField] private TextMeshProUGUI _multiplierText = null;
+        [SerializeField] private int _scorePerTile = 10;
+        [SerializeField] private float _multiplierPerTile = 0.0f;
+
         [Header("Feedbacks")]
         [SerializeField] private MMF_Player _validatedFeedback = null;
         [SerializeField] private MMF_Player _destroyLineFeedback = null;
         [SerializeField] private MMF_Player _nextFeedback = null;
         [SerializeField] private MMF_Player _storeFeedback = null;
+        [SerializeField] private MMF_Player _scoreFeedback = null;
         [SerializeField] private MMF_Player _winFeedback = null;
 
         private Queue<ETetromino> _tetroQueue = null;
@@ -39,6 +50,9 @@ namespace Avenyrh
         private int _currentObjectiveRow = 0;
         private bool _hasStoredThisPiece = false;
         private ETetromino _storeTetro = ETetromino.None;
+
+        private int _currentScore = 0;
+        private float _currentMultiplier = 0.0f;
 
         public Objective debugObj = null;
 
@@ -50,6 +64,10 @@ namespace Avenyrh
                 _tetrominoes[i].Initialize();
             }
 
+            _currentScore = 0;
+            _scoreText.text = "0";
+            _currentMultiplier = 1.0f;
+            _multiplierText.text = "X1,0";
             _controls = new Controls_WASD();
             _store.sprite = null;
         }
@@ -181,6 +199,7 @@ namespace Avenyrh
                 TetrominoData d = _tetrominoes[_storeTetro.GetHashCode()];
                 _store.sprite = d.preview;
                 _storeFeedback.PlayFeedbacks();
+                _audioManager.PlayStore();
                 _hasStoredThisPiece = true;
 
                 return true;
@@ -216,7 +235,12 @@ namespace Avenyrh
             }
 
             if (lineWasCleared)
+            {
+                _currentMultiplier = 1.0f;
+                _multiplierText.text = "X1,0";
                 _destroyLineFeedback.PlayFeedbacks();
+                _audioManager.PlayDestroy();
+            }
         }
 
         public bool IsLineFull(int row)
@@ -281,14 +305,20 @@ namespace Avenyrh
         public void ValidateLine(int row)
         {
             RectInt bounds = Bounds;
+            int nbOfTiles = 0;
 
             _validatedFeedback.PlayFeedbacks();
             for (int col = bounds.xMin; col < bounds.xMax; col++)
             {
                 Vector3Int position = new Vector3Int(col, _currentObjectiveRow, 0);
 
+                if(_objective.HasTile(position))
+                    nbOfTiles++;
+
                 _validatedTilemap.SetTile(position, _validatedTile);
             }
+
+            Score(nbOfTiles);
         }
         #endregion
 
@@ -300,7 +330,7 @@ namespace Avenyrh
             _objective.transform.localPosition = Vector3.zero;
             _piece.CanMove = true;
         }
-
+        
         public void LockPiece()
         {
             Set(_piece);
@@ -347,7 +377,22 @@ namespace Avenyrh
         }
         #endregion
 
+        #region Score
+        private void Score(int nbOfTiles)
+        {
+            _currentMultiplier += nbOfTiles * _multiplierPerTile;
+            _currentScore += Mathf.FloorToInt(nbOfTiles * _scorePerTile * _currentMultiplier);
+
+            _multiplierText.text = $"X{_currentMultiplier}";
+            _scoreText.text = _currentScore.ToString();
+
+            _scoreFeedback.PlayFeedbacks();
+        }
+        #endregion
+
         #region Getters & Setters
+        public AudioManager AudioManager => _audioManager;
+
         public Vector2Int BoardSize => _boardSize;
 
         public RectInt Bounds

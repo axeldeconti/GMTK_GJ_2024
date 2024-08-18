@@ -11,7 +11,7 @@ namespace Avenyrh
 
         [Header("Debug")]
         [SerializeField] private bool _canMove = false;
-        
+
         [Header("Feedbacks")]
         [SerializeField] private MMF_Player _hardDropFeedback = null;
 
@@ -103,17 +103,22 @@ namespace Avenyrh
             {
                 // Update the step time to prevent double movement
                 if (Move(Vector2Int.down))
+                {
                     _stepTime = Time.time + _stepDelay;
+                    _board.AudioManager.PlayMove();
+                }
             }
 
             // Left/right movement
             if (_controls.Left())
             {
                 Move(Vector2Int.left);
+                _board.AudioManager.PlayMove();
             }
             else if (_controls.Right())
             {
                 Move(Vector2Int.right);
+                _board.AudioManager.PlayMove();
             }
         }
 
@@ -123,6 +128,8 @@ namespace Avenyrh
 
             // Step down to the next row
             Move(Vector2Int.down);
+
+            _board.AudioManager.PlayStep();
 
             // Once the piece has been inactive for too long it becomes locked
             if (_lockTime >= _lockDelay)
@@ -176,6 +183,10 @@ namespace Avenyrh
             {
                 _rotationIndex = originalRotation;
                 ApplyRotationMatrix(-direction);
+            }
+            else
+            {
+                _board.AudioManager.PlayRotate();
             }
         }
 
@@ -249,7 +260,7 @@ namespace Avenyrh
         public Vector3Int Position => _position;
         public bool CanMove
         {
-            get => _canMove; 
+            get => _canMove;
             set => _canMove = value;
         }
     }
