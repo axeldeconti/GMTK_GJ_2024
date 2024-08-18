@@ -38,7 +38,7 @@ namespace Avenyrh
             _moveTime = Time.time + _moveDelay;
             _lockTime = 0f;
 
-            if (_cells == null)
+            if (_cells == null || _cells.Length == 0)
                 _cells = new Vector3Int[data.cells.Length];
 
             for (int i = 0; i < _cells.Length; i++)
@@ -253,6 +253,11 @@ namespace Avenyrh
                 return max - (min - input) % (max - min);
             else
                 return min + (input - min) % (max - min);
+        }
+
+        public void ResetCells()
+        {
+            _cells = new Vector3Int[0];
         }
 
         public TetrominoData TetroData => _data;

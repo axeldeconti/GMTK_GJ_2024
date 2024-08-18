@@ -5,22 +5,24 @@ namespace Avenyrh
 {
     public class Ghost : MonoBehaviour
     {
-        public Tile tile;
-        public Board mainBoard;
-        public Piece trackingPiece;
+        [SerializeField] private Tilemap _tilemap = null;
+        [SerializeField] private Tile _tile = null;
+        [SerializeField] private Board _board = null;
+        [SerializeField] private Piece _piece = null;
 
-        public Tilemap tilemap { get; private set; }
-        public Vector3Int[] cells { get; private set; }
-        public Vector3Int position { get; private set; }
+        private Vector3Int[] _cells = null;
+        private Vector3Int _position = Vector3Int.zero;
 
         private void Awake()
         {
-            tilemap = GetComponentInChildren<Tilemap>();
-            cells = new Vector3Int[4];
+            _cells = new Vector3Int[4];
         }
 
         private void LateUpdate()
         {
+            if (_board.Objective == null || _piece.Cells == null || _piece.Cells.Length == 0)
+                return;
+
             Clear();
             Copy();
             Drop();
@@ -29,37 +31,37 @@ namespace Avenyrh
 
         private void Clear()
         {
-            for (int i = 0; i < cells.Length; i++)
+            for (int i = 0; i < _cells.Length; i++)
             {
-                Vector3Int tilePosition = cells[i] + position;
-                tilemap.SetTile(tilePosition, null);
+                Vector3Int tilePosition = _cells[i] + _position;
+                _tilemap.SetTile(tilePosition, null);
             }
         }
 
         private void Copy()
         {
-            for (int i = 0; i < cells.Length; i++)
+            for (int i = 0; i < _cells.Length; i++)
             {
-                cells[i] = trackingPiece.Cells[i];
+                _cells[i] = _piece.Cells[i];
             }
         }
 
         private void Drop()
         {
-            Vector3Int position = trackingPiece.Position;
+            Vector3Int position = _piece.Position;
 
             int current = position.y;
-            int bottom = -mainBoard.BoardSize.y / 2 - 1;
+            int bottom = -_board.BoardSize.y / 2 - 1;
 
-            mainBoard.ClearMap(trackingPiece);
+            _board.ClearMap(_piece);
 
             for (int row = current; row >= bottom; row--)
             {
                 position.y = row;
 
-                if (mainBoard.IsValidPosition(trackingPiece, position))
+                if (_board.IsValidPosition(_piece, position))
                 {
-                    this.position = position;
+                    this._position = position;
                 }
                 else
                 {
@@ -67,17 +69,16 @@ namespace Avenyrh
                 }
             }
 
-            mainBoard.Set(trackingPiece);
+            _board.Set(_piece);
         }
 
         private void Set()
         {
-            for (int i = 0; i < cells.Length; i++)
+            for (int i = 0; i < _cells.Length; i++)
             {
-                Vector3Int tilePosition = cells[i] + position;
-                tilemap.SetTile(tilePosition, tile);
+                Vector3Int tilePosition = _cells[i] + _position;
+                _tilemap.SetTile(tilePosition, _tile);
             }
         }
-
     }
 }

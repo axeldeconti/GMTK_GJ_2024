@@ -17,6 +17,7 @@ namespace Avenyrh
         [SerializeField] private Piece _piece = null;
         [SerializeField] private Transform _objParent = null;
         [SerializeField] private TetrominoData[] _tetrominoes = null;
+        [SerializeField] private Tilemap _ghostTilemap = null;
 
         [Header("Validation")]
         [SerializeField] private Tilemap _validatedTilemap = null;
@@ -30,6 +31,9 @@ namespace Avenyrh
         [SerializeField] private Vector2Int _boardSize = new Vector2Int(10, 20);
         [SerializeField] private Vector3Int _spawnPosition = new Vector3Int(-1, 8, 0);
 
+        [Header("Objectives")]
+        [SerializeField] private List<Objective> _objectives = null;
+
         [Header("Score")]
         [SerializeField] private TextMeshProUGUI _scoreText = null;
         [SerializeField] private TextMeshProUGUI _multiplierText = null;
@@ -37,12 +41,19 @@ namespace Avenyrh
         [SerializeField] private float _multiplierPerTile = 0.0f;
 
         [Header("Feedbacks")]
+        [SerializeField] private GameObject _finalScoreParent = null;
+        [SerializeField] private TextMeshProUGUI _finalScoreText = null;
+
+        [Header("Feedbacks")]
+        [SerializeField] private MMF_Player _newObjectiveFeedback = null;
         [SerializeField] private MMF_Player _validatedFeedback = null;
         [SerializeField] private MMF_Player _destroyLineFeedback = null;
         [SerializeField] private MMF_Player _nextFeedback = null;
         [SerializeField] private MMF_Player _storeFeedback = null;
         [SerializeField] private MMF_Player _scoreFeedback = null;
         [SerializeField] private MMF_Player _winFeedback = null;
+        [SerializeField] private MMF_Player _looseFeedback = null;
+        [SerializeField] private MMF_Player _finalScoreFeedback = null;
 
         private Queue<ETetromino> _tetroQueue = null;
         private Objective _objective = null;
@@ -54,35 +65,21 @@ namespace Avenyrh
         private int _currentScore = 0;
         private float _currentMultiplier = 0.0f;
 
-        public Objective debugObj = null;
-
         private void Awake()
         {
+            EventManager.Subscribe(Ev.OnStartGame, OnStartGame);
+            EventManager.Subscribe(Ev.OnEndGame, OnEndGame);
+
             _tetroQueue = new Queue<ETetromino>();
             for (int i = 0; i < _tetrominoes.Length; i++)
             {
                 _tetrominoes[i].Initialize();
             }
 
-            _currentScore = 0;
-            _scoreText.text = "0";
-            _currentMultiplier = 1.0f;
-            _multiplierText.text = "X1,0";
+            ResetScore();
             _controls = new Controls_WASD();
             _store.sprite = null;
-        }
-
-        private void Start()
-        {
-            SetObjective(debugObj);
-            SpawnPiece();
-        }
-
-        public void GameOver()
-        {
-            _boardTilemap.ClearAllTiles();
-
-            // Do anything else you want on game over here..
+            _finalScoreParent.SetActive(false);
         }
 
         #region Piece
@@ -110,7 +107,7 @@ namespace Avenyrh
             }
             else
             {
-                GameOver();
+                ObjectiveLost();
             }
         }
 
@@ -187,7 +184,7 @@ namespace Avenyrh
                     }
                     else
                     {
-                        GameOver();
+                        ObjectiveLost();
                     }
                 }
                 else
@@ -312,7 +309,7 @@ namespace Avenyrh
             {
                 Vector3Int position = new Vector3Int(col, _currentObjectiveRow, 0);
 
-                if(_objective.HasTile(position))
+                if (_objective.HasTile(position))
                     nbOfTiles++;
 
                 _validatedTilemap.SetTile(position, _validatedTile);
@@ -326,21 +323,28 @@ namespace Avenyrh
         public void SetObjective(Objective obj)
         {
             _currentObjectiveRow = Bounds.yMin;
+
             _objective = Instantiate(obj, Vector3.zero, Quaternion.identity, _objParent);
             _objective.transform.localPosition = Vector3.zero;
+            _newObjectiveFeedback.PlayFeedbacks();
+
+            SpawnPiece();
             _piece.CanMove = true;
         }
-        
+
         public void LockPiece()
         {
             Set(_piece);
-            CheckObjective();
+            bool objFinished = CheckObjective();
             ClearLines();
-            SpawnPiece();
+
+            if(!objFinished)
+                SpawnPiece();
+
             _nextFeedback.PlayFeedbacks();
         }
 
-        public void CheckObjective()
+        public bool CheckObjective()
         {
             while (IsObjectiveLineValidated())
             {
@@ -350,12 +354,27 @@ namespace Avenyrh
                 if (_currentObjectiveRow >= _objective.MaxRow)
                 {
                     //Validate objective
-                    Debug.Log("Validate objective");
                     _piece.CanMove = false;
+                    _piece.ResetCells();
                     _winFeedback.PlayFeedbacks();
-                    break;
+
+                    _validatedTilemap.ClearAllTiles();
+                    _boardTilemap.ClearAllTiles();
+                    _ghostTilemap.ClearAllTiles();
+
+                    Destroy(_objective.gameObject);
+
+                    Invoke("SetNewRandomObjective", 1);
+                    return true;
                 }
             }
+
+            return false;
+        }
+
+        private void SetNewRandomObjective()
+        {
+            SetObjective(_objectives.GetRandom());
         }
 
         public bool IsObjectiveLineValidated()
@@ -375,6 +394,17 @@ namespace Avenyrh
 
             return true;
         }
+
+        public void ObjectiveLost()
+        {
+            ResetScore();
+            _looseFeedback.PlayFeedbacks();
+
+            _validatedTilemap.ClearAllTiles();
+            _boardTilemap.ClearAllTiles();
+
+            Invoke("SetNewRandomObjective", 1);
+        }
         #endregion
 
         #region Score
@@ -383,17 +413,64 @@ namespace Avenyrh
             _currentMultiplier += nbOfTiles * _multiplierPerTile;
             _currentScore += Mathf.FloorToInt(nbOfTiles * _scorePerTile * _currentMultiplier);
 
-            _multiplierText.text = $"X{_currentMultiplier}";
+            _multiplierText.text = $"X{_currentMultiplier:0.0}";
             _scoreText.text = _currentScore.ToString();
 
             _scoreFeedback.PlayFeedbacks();
         }
+
+        private void ResetScore()
+        {
+            _currentScore = 0;
+            _scoreText.text = "0";
+            _currentMultiplier = 1.0f;
+            _multiplierText.text = "X1,0";
+        }
         #endregion
+
+        #region Events
+        private void OnStartGame(object[] args)
+        {
+            SetNewRandomObjective();
+        }
+
+        private void OnEndGame(object[] args)
+        {
+            _piece.CanMove = false;
+            Invoke("ShowFinalScore", 1);
+        }
+
+        private void ShowFinalScore()
+        {
+            _finalScoreParent.SetActive(true);
+            _finalScoreText.text = _currentScore.ToString();
+            _finalScoreFeedback.PlayFeedbacks();
+        }
+        #endregion
+
+        private void OnDrawGizmosSelected()
+        {
+            RectInt bounds = Bounds;
+            Vector3 from = new Vector3Int(bounds.xMin, _currentObjectiveRow, 0) + transform.position;
+            Vector3 to = new Vector3Int(bounds.xMax, _currentObjectiveRow, 0) + transform.position;
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(from, to);
+
+            if (_objective == null)
+                return;
+
+            from = new Vector3Int(bounds.xMin, _objective.MaxRow, 0) + transform.position;
+            to = new Vector3Int(bounds.xMax, _objective.MaxRow, 0) + transform.position;
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(from, to);
+        }
 
         #region Getters & Setters
         public AudioManager AudioManager => _audioManager;
-
         public Vector2Int BoardSize => _boardSize;
+        public Objective Objective => _objective;
 
         public RectInt Bounds
         {

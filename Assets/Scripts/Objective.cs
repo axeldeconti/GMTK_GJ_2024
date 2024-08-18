@@ -7,7 +7,6 @@ namespace Avenyrh
     {
         [SerializeField] private Tilemap _tilemap = null;
         [SerializeField] private int _maxRow = 0;
-        [SerializeField] private Tile _lockedTile = null;
 
         public bool HasTile(Vector3Int pos)
         {
