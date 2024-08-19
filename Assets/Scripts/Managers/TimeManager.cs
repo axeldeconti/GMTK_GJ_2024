@@ -20,10 +20,16 @@ namespace Avenyrh
 
         private float _currentTime = -1;
         private int _nbOfBeeps = 5;
+        private bool _isCounting = false;
 
         private void Awake()
         {
             EventManager.Subscribe(Ev.OnEndCountdown, OnEndCountdown);
+        }
+
+        private void OnDestroy()
+        {
+            EventManager.Unsubscribe(Ev.OnEndCountdown, OnEndCountdown);
         }
 
         private void Start()
@@ -39,7 +45,7 @@ namespace Avenyrh
 
         private void Update()
         {
-            if (_currentTime <= 0)
+            if (_currentTime <= 0 || !_isCounting)
                 return;
 
             _currentTime -= Time.deltaTime;
@@ -76,6 +82,11 @@ namespace Avenyrh
             }
         }
 
+        public void SetIsCounting(bool isCounting)
+        {
+            _isCounting = isCounting;
+        }
+
         private void StartCountdown()
         {
             EventManager.Trigger(Ev.OnStartCountdown, _timeToStart);
@@ -83,6 +94,7 @@ namespace Avenyrh
 
         private void OnEndCountdown(object[] args)
         {
+            _isCounting = true;
             _currentTime = _gameTime;
             _nbOfBeeps = 5;
             EventManager.Trigger(Ev.OnStartGame);

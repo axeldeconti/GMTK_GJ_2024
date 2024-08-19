@@ -5,6 +5,7 @@ namespace Avenyrh
 {
 	public class GameManager : Singleton<GameManager>, IInitiable
 	{
+		[SerializeField] private TimeManager _timeManager = null;
 		[SerializeField] private GameObject _onePlayerModeParent = null;
 		[SerializeField] private GameObject _twoPlayerModeParent = null;
 
@@ -13,8 +14,12 @@ namespace Avenyrh
 		[SerializeField] private Board _twoPlayerBoard1 = null;
 		[SerializeField] private Board _twoPlayerBoard2 = null;
 
+		[Header("Pause")]
+		[SerializeField] private GameObject _pauseMenu = null;
+
         private void Start()
         {
+			_pauseMenu.SetActive(false);
 			if (GameData.IsOnePlayer)
 			{
 				_onePlayerBoard.SetControls(GameData.GetControls(GameData.player1Controls));
@@ -25,6 +30,49 @@ namespace Avenyrh
 				_twoPlayerBoard2.SetControls(GameData.GetControls(GameData.player2Controls));
 			}
         }
+
+        private void Update()
+        {
+			if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Joystick1Button7) || Input.GetKeyDown(KeyCode.Joystick2Button7))
+			{
+				TogglePauseMenu();
+			}
+        }
+
+        public void TogglePauseMenu()
+		{
+			bool pause = !_pauseMenu.activeSelf;
+			_pauseMenu.SetActive(pause);
+
+			if (pause)
+			{
+				_timeManager.SetIsCounting(false);
+
+				if (GameData.IsOnePlayer)
+				{
+					_onePlayerBoard.SetCanPlay(false);
+				}
+				else
+				{
+					_twoPlayerBoard1.SetCanPlay(false);
+					_twoPlayerBoard2.SetCanPlay(false);
+				}
+			}
+			else
+			{
+                _timeManager.SetIsCounting(true);
+
+                if (GameData.IsOnePlayer)
+                {
+                    _onePlayerBoard.SetCanPlay(true);
+                }
+                else
+                {
+                    _twoPlayerBoard1.SetCanPlay(true);
+                    _twoPlayerBoard2.SetCanPlay(true);
+                }
+            }
+		}
 
         public void GoToMainMenu()
 		{

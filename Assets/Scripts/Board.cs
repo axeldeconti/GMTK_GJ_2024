@@ -81,9 +81,20 @@ namespace Avenyrh
             _finalScoreParent.SetActive(false);
         }
 
+        private void OnDestroy()
+        {
+            EventManager.Unsubscribe(Ev.OnStartGame, OnStartGame);
+            EventManager.Unsubscribe(Ev.OnEndGame, OnEndGame);
+        }
+
         public void SetControls(Controls controls)
         {
             _controls = controls;
+        }
+
+        public void SetCanPlay(bool canPlay)
+        {
+            _piece.CanMove = canPlay;
         }
 
         #region Piece

@@ -33,7 +33,7 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>, IInit
             if (_isPersistant)
             {
                 transform.parent = null;
-                //DontDestroyOnLoad(gameObject);
+                DontDestroyOnLoad(gameObject);
             }
 
             SingletonInitializer.Record(instance);

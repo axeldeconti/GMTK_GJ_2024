@@ -27,6 +27,11 @@ namespace Avenyrh
             _goParent.SetActive(false);
         }
 
+        private void OnDestroy()
+        {
+            EventManager.Unsubscribe(Ev.OnStartCountdown, OnStartCountdown);
+        }
+
         private void OnStartCountdown(object[] args)
         {
             _currentTime = (int)args[0];
