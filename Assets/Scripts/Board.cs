@@ -77,9 +77,13 @@ namespace Avenyrh
             }
 
             ResetScore();
-            _controls = new Controls_WASD();
             _store.sprite = null;
             _finalScoreParent.SetActive(false);
+        }
+
+        public void SetControls(Controls controls)
+        {
+            _controls = controls;
         }
 
         #region Piece

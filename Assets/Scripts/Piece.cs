@@ -47,7 +47,7 @@ namespace Avenyrh
 
         private void Update()
         {
-            if (!_canMove)
+            if (!_canMove || _controls == null)
                 return;
 
             _board.ClearMap(this);
