@@ -11,7 +11,6 @@ namespace Avenyrh
 
 		[Header("Clips")]
 		[SerializeField] private AudioClip _stepClip = null;
-		[SerializeField] private AudioClip _hardDropClip = null;
 		[SerializeField] private AudioClip _storeClip = null;
 		[SerializeField] private AudioClip _moveClip = null;
 		[SerializeField] private AudioClip _rotateClip = null;
