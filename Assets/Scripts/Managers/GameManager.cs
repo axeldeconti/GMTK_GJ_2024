@@ -108,15 +108,20 @@ namespace Avenyrh
                 _quitFeedback.RestoreInitialValues();
                 _quitFeedback.StopFeedbacks();
 
-                if (GameData.IsOnePlayer)
-                {
-                    _onePlayerBoard.SetCanPlay(true);
-                }
-                else
-                {
-                    _twoPlayerBoard1.SetCanPlay(true);
-                    _twoPlayerBoard2.SetCanPlay(true);
-                }
+                Invoke("ResetControls", 0.1f);
+            }
+        }
+
+        private void ResetControls()
+        {
+            if (GameData.IsOnePlayer)
+            {
+                _onePlayerBoard.SetCanPlay(true);
+            }
+            else
+            {
+                _twoPlayerBoard1.SetCanPlay(true);
+                _twoPlayerBoard2.SetCanPlay(true);
             }
         }
 
