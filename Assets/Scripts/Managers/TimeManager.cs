@@ -7,7 +7,8 @@ namespace Avenyrh
 	{
         [Header("References")]
         [SerializeField] private AudioSource _audioSource = null;
-        [SerializeField] private TextMeshProUGUI _timeText = null;
+        [SerializeField] private TextMeshProUGUI _onePlayerTimeText = null;
+        [SerializeField] private TextMeshProUGUI _twoPlayerTimeText = null;
         [SerializeField] private GameObject _endGameUI = null;
 
         [Header("Times")]
@@ -38,7 +39,8 @@ namespace Avenyrh
 
             int min = Mathf.FloorToInt(_gameTime / 60);
             int sec = Mathf.FloorToInt(_gameTime % 60);
-            _timeText.text = $"{min} : {sec}";
+            _onePlayerTimeText.text = $"{min} : {sec}";
+            _twoPlayerTimeText.text = $"{min} : {sec}";
 
             Invoke("StartCountdown", 1);
         }
@@ -69,7 +71,15 @@ namespace Avenyrh
         {
             int min = Mathf.FloorToInt(_currentTime / 60);
             int sec = Mathf.FloorToInt(_currentTime % 60);
-            _timeText.text = $"{min} : {sec}";
+            GetText().text = $"{min} : {sec}";
+        }
+
+        private TextMeshProUGUI GetText()
+        {
+            if (GameData.IsOnePlayer)
+                return _onePlayerTimeText;
+            else
+                return _twoPlayerTimeText;
         }
 
         private void CheckBeeps()

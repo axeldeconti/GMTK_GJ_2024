@@ -51,8 +51,8 @@ namespace Avenyrh
             _wasUp = isUp;
             return !wasUp && isUp;
         }
-        public override bool RotateClockwise() => Input.GetKeyDown(KeyCode.Joystick1Button4);
-        public override bool RotateTrigo() => Input.GetKeyDown(KeyCode.Joystick1Button5);
+        public override bool RotateClockwise() => Input.GetKeyDown(KeyCode.Joystick1Button5);
+        public override bool RotateTrigo() => Input.GetKeyDown(KeyCode.Joystick1Button4);
         public override bool Store() => Input.GetKeyDown(KeyCode.Joystick1Button0);
     }
 
@@ -70,8 +70,8 @@ namespace Avenyrh
             _wasUp = isUp;
             return !wasUp && isUp;
         }
-        public override bool RotateClockwise() => Input.GetKeyDown(KeyCode.Joystick2Button4);
-        public override bool RotateTrigo() => Input.GetKeyDown(KeyCode.Joystick2Button5);
+        public override bool RotateClockwise() => Input.GetKeyDown(KeyCode.Joystick2Button5);
+        public override bool RotateTrigo() => Input.GetKeyDown(KeyCode.Joystick2Button4);
         public override bool Store() => Input.GetKeyDown(KeyCode.Joystick2Button0);
     }
 

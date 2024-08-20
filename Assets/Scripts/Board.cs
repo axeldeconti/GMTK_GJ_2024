@@ -414,9 +414,14 @@ namespace Avenyrh
         {
             ResetScore();
             _looseFeedback.PlayFeedbacks();
+            _piece.CanMove = false;
+            _piece.ResetCells();
 
             _validatedTilemap.ClearAllTiles();
             _boardTilemap.ClearAllTiles();
+            _ghostTilemap.ClearAllTiles();
+
+            Destroy(_objective.gameObject);
 
             Invoke("SetNewRandomObjective", 1);
         }
@@ -486,6 +491,7 @@ namespace Avenyrh
         public AudioManager AudioManager => _audioManager;
         public Vector2Int BoardSize => _boardSize;
         public Objective Objective => _objective;
+        public int CurrentScore => _currentScore;
 
         public RectInt Bounds
         {

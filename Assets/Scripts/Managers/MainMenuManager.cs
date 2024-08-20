@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 namespace Avenyrh
 {
@@ -7,6 +8,11 @@ namespace Avenyrh
 	{
 		[SerializeField] private PlayerSelection _player1 = null;
 		[SerializeField] private PlayerSelection _player2 = null;
+
+		[Header("Buttons")]
+		[SerializeField] private GameObject _playButton = null;
+		[SerializeField] private GameObject _playReturnButton = null;
+		[SerializeField] private GameObject _howToPlayReturnButton = null;
 
 		public void LoadGame()
 		{
@@ -20,5 +26,29 @@ namespace Avenyrh
 		{
 			Application.Quit();
 		}
-	}
+
+		public void SetMainPage()
+		{
+			SetNewSelected(_playButton);
+		}
+
+        public void SetPlayPage()
+        {
+            SetNewSelected(_playReturnButton);
+        }
+
+        public void SetHowToPlayPage()
+        {
+            SetNewSelected(_howToPlayReturnButton);
+        }
+
+        private void SetNewSelected(GameObject go)
+		{
+            //Clear selected
+            EventSystem.current.SetSelectedGameObject(null);
+
+            //Set new selected
+			EventSystem.current.SetSelectedGameObject(go);
+        }
+    }
 }
